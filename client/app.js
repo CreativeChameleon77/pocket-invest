@@ -1,4 +1,4 @@
-const API_BASE = "https://pocket-invest.onrender.com/";
+const API_BASE = "https://pocket-invest.onrender.com";
 
 const userId = "user1";
 
