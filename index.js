@@ -33,6 +33,10 @@ app.post("/api/invest", (req, res) => {
   res.json(user);
 });
 
+app.get("/", (req, res) => {
+  res.send("Pocket Invest API is running 🚀");
+});
+
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
 });
