@@ -1,70 +1,108 @@
-const { createClient } = require('@supabase/supabase-js');
-
-const supabase = createClient(
-  "https://ukidcqindhdxefcjbsfu.supabase.co",
- "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVraWRjcWluZGhkeGVmY2pic2Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDExMDQsImV4cCI6MjA5Mjg3NzEwNH0.tEZis_cv-4OJNwmxgc378bjQvIjGhXg-yPLsnTu4B6I"
-);
 const express = require("express");
 const cors = require("cors");
+const bodyParser = require("body-parser");
+const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());
 
-// fake database
-let users = {
-  user1: {
-    balance: 100,
-    portfolio: {}
-  }
-};
+// =======================
+// SUPABASE SETUP
+// =======================
 
-// get user data
-app.get("/api/portfolio/:userId", async (req, res) => {
-  const { data, error } = await supabase
-    .from("portfolios")
-    .select("*")
-    .eq("id", req.params.userId)
-    .single();
+const supabase = createClient(
+  "https://ukidcqindhdxefcjbsfu.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVraWRjcWluZGhkeGVmY2pic2Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDExMDQsImV4cCI6MjA5Mjg3NzEwNH0.tEZis_cv-4OJNwmxgc378bjQvIjGhXg-yPLsnTu4B6I"
+);
 
-  if (error) return res.status(500).json(error);
-
-  res.json({
-    balance: data.balance,
-    portfolio: data.data
-  });
-});
-
-// invest
-app.post("/api/invest", async (req, res) => {
-  const { userId, asset, amount } = req.body;
-
-  const { data } = await supabase
-    .from("portfolios")
-    .select("*")
-    .eq("id", userId)
-    .single();
-
-  let portfolio = data.data || {};
-
-  portfolio[asset] = (portfolio[asset] || 0) + amount;
-
-  await supabase
-    .from("portfolios")
-    .update({
-      balance: data.balance - amount,
-      data: portfolio
-    })
-    .eq("id", userId);
-
-  res.json({ success: true });
-});
+// =======================
+// HEALTH CHECK
+// =======================
 
 app.get("/", (req, res) => {
   res.send("Pocket Invest API is running 🚀");
 });
 
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+// =======================
+// GET PORTFOLIO
+// =======================
+
+app.get("/api/portfolio/:userId", async (req, res) => {
+  const { userId } = req.params;
+
+  const { data, error } = await supabase
+    .from("portfolios")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    return res.status(500).json({
+      error: "Failed to fetch portfolio",
+      details: error.message
+    });
+  }
+
+  return res.json({
+    balance: data.balance,
+    portfolio: data.data || {}
+  });
 });
 
+// =======================
+// INVEST ROUTE
+// =======================
+
+app.post("/api/invest", async (req, res) => {
+  const { userId, asset, amount } = req.body;
+
+  const { data, error } = await supabase
+    .from("portfolios")
+    .select("*")
+    .eq("id", userId)
+    .single();
+
+  if (error) {
+    return res.status(500).json({
+      error: "User not found",
+      details: error.message
+    });
+  }
+
+  let portfolio = data.data || {};
+  let newBalance = data.balance - amount;
+
+  portfolio[asset] = (portfolio[asset] || 0) + amount;
+
+  const { error: updateError } = await supabase
+    .from("portfolios")
+    .update({
+      balance: newBalance,
+      data: portfolio
+    })
+    .eq("id", userId);
+
+  if (updateError) {
+    return res.status(500).json({
+      error: "Update failed",
+      details: updateError.message
+    });
+  }
+
+  res.json({
+    success: true,
+    balance: newBalance,
+    portfolio
+  });
+});
+
+// =======================
+// START SERVER
+// =======================
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
