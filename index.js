@@ -11,6 +11,8 @@ app.use(bodyParser.json());
 // SUPABASE SETUP
 // =======================
 
+const { createClient } = require("@supabase/supabase-js");
+
 const supabase = createClient(
   "https://ukidcqindhdxefcjbsfu.supabase.co",
 "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVraWRjcWluZGhkeGVmY2pic2Z1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDExMDQsImV4cCI6MjA5Mjg3NzEwNH0.tEZis_cv-4OJNwmxgc378bjQvIjGhXg-yPLsnTu4B6I"
@@ -40,6 +42,14 @@ app.get("/api/portfolio/:userId", async (req, res) => {
       portfolio: {}
     });
   }
+
+  const user = data[0];
+
+  res.json({
+    balance: user.balance ?? 100,
+    portfolio: user.data ?? {}
+  });
+});
 
   const user = data[0];
 
