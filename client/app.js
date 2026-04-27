@@ -1,5 +1,4 @@
 const API_BASE = "https://pocket-invest.onrender.com";
-
 const userId = "user1";
 
 async function load() {
@@ -7,15 +6,24 @@ async function load() {
   const data = await res.json();
 
   document.getElementById("balance").innerText =
-    "Balance: £" + data.balance;
+    "£" + data.balance;
 
   const portfolioDiv = document.getElementById("portfolio");
   portfolioDiv.innerHTML = "";
 
+  if (Object.keys(data.portfolio).length === 0) {
+    portfolioDiv.innerHTML = "<p class='text-gray-500'>No investments yet</p>";
+    return;
+  }
+
   for (let asset in data.portfolio) {
-    const p = document.createElement("p");
-    p.innerText = `${asset}: £${data.portfolio[asset]}`;
-    portfolioDiv.appendChild(p);
+    const el = document.createElement("div");
+    el.className = "flex justify-between border-b border-gray-800 py-1";
+    el.innerHTML = `
+      <span>${asset}</span>
+      <span>£${data.portfolio[asset]}</span>
+    `;
+    portfolioDiv.appendChild(el);
   }
 }
 
