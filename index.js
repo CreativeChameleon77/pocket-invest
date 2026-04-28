@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
+
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -29,23 +30,29 @@ app.get("/", (req, res) => {
 // =======================
 
 app.get("/api/portfolio/:userId", async (req, res) => {
-  const { data, error } = await supabase
-    .from("portfolios")
-    .select("*")
-    .eq("id", req.params.userId)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from("portfolios")
+      .select("*")
+      .eq("id", req.params.userId)
+      .single();
 
-  if (error || !data) {
-    return res.json({
-      balance: 100,
-      portfolio: {}
+    if (error || !data) {
+      return res.json({
+        balance: 100,
+        portfolio: {}
+      });
+    }
+
+    res.json({
+      balance: data.balance ?? 100,
+      portfolio: data.data ?? {}
     });
-  }
 
-  res.json({
-    balance: data.balance ?? 100,
-    portfolio: data.data ?? {}
-  });
+  } catch (err) {
+    console.error("GET ERROR:", err);
+    res.status(500).json({ error: "Server error" });
+  }
 });
 
 // =======================
@@ -56,20 +63,15 @@ app.post("/api/invest", async (req, res) => {
   try {
     const { userId, asset, amount } = req.body;
 
-    console.log("REQUEST:", req.body);
-
     const { data, error } = await supabase
       .from("portfolios")
       .select("*")
       .eq("id", userId)
       .single();
 
-    if (error) {
-      console.error("SUPABASE FETCH ERROR:", error);
-      return res.status(500).json(error);
+    if (error || !data) {
+      return res.status(500).json({ error: "User not found" });
     }
-
-    console.log("FOUND USER:", data);
 
     let portfolio = data.data || {};
     let newBalance = data.balance - amount;
@@ -85,15 +87,18 @@ app.post("/api/invest", async (req, res) => {
       .eq("id", userId);
 
     if (updateError) {
-      console.error("SUPABASE UPDATE ERROR:", updateError);
-      return res.status(500).json(updateError);
+      return res.status(500).json({ error: updateError.message });
     }
 
-    res.json({ success: true, balance: newBalance });
+    res.json({
+      success: true,
+      balance: newBalance,
+      portfolio
+    });
 
   } catch (err) {
-    console.error("CRASH:", err);
-    res.status(500).json({ error: err.message });
+    console.error("INVEST ERROR:", err);
+    res.status(500).json({ error: "Server error" });
   }
 });
 
