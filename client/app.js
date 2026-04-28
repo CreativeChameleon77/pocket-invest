@@ -4,25 +4,28 @@ const userId = "user1";
 let chart;
 
 // store fake history locally (simple MVP version)
-let history = [100];
+let chart;
 
 function renderChart(balance) {
-  history.push(balance);
+  const canvas = document.getElementById("chart");
 
-  const ctx = document.getElementById("chart").getContext("2d");
+  if (!canvas) return;
+
+  const ctx = canvas.getContext("2d");
 
   if (chart) chart.destroy();
 
   chart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: history.map((_, i) => i),
+      labels: ["Start", "Now"],
       datasets: [{
-        label: "Portfolio",
-        data: history,
+        data: [100, balance],
         borderWidth: 2
       }]
-    },
+    }
+  });
+}
     options: {
       responsive: true,
       plugins: {
