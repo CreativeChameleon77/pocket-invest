@@ -53,36 +53,54 @@ app.get("/api/portfolio/:userId", async (req, res) => {
 // =======================
 
 app.post("/api/invest", async (req, res) => {
-  const { userId, asset, amount } = req.body;
+  try {
+    const { userId, asset, amount } = req.body;
 
-  const { data, error } = await supabase
-    .from("portfolios")
-    .select("*")
-    .eq("id", userId)
-    .single();
+    console.log("Incoming:", userId, asset, amount);
 
-  if (error || !data) {
-    return res.status(500).json({ error: "User not found" });
-  }
+    const { data, error } = await supabase
+      .from("portfolios")
+      .select("*")
+      .eq("id", userId)
+      .single();
 
-  let portfolio = data.data || {};
-  let newBalance = data.balance - amount;
+    if (error) {
+      console.error("FETCH ERROR:", error);
+      return res.status(500).json({ error: error.message });
+    }
 
-  portfolio[asset] = (portfolio[asset] || 0) + amount;
+    if (!data) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-  await supabase
-    .from("portfolios")
-    .update({
+    let portfolio = data.data || {};
+    let newBalance = data.balance - amount;
+
+    portfolio[asset] = (portfolio[asset] || 0) + amount;
+
+    const { error: updateError } = await supabase
+      .from("portfolios")
+      .update({
+        balance: newBalance,
+        data: portfolio
+      })
+      .eq("id", userId);
+
+    if (updateError) {
+      console.error("UPDATE ERROR:", updateError);
+      return res.status(500).json({ error: updateError.message });
+    }
+
+    res.json({
+      success: true,
       balance: newBalance,
-      data: portfolio
-    })
-    .eq("id", userId);
+      portfolio
+    });
 
-  res.json({
-    success: true,
-    balance: newBalance,
-    portfolio
-  });
+  } catch (err) {
+    console.error("SERVER ERROR:", err);
+    res.status(500).json({ error: "Server crashed" });
+  }
 });
 
 // =======================
