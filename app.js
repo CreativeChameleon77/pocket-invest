@@ -2,30 +2,27 @@ const API_BASE = "https://pocket-invest.onrender.com";
 const userId = "user1";
 
 let chart;
-
-// store fake history locally (simple MVP version)
-let chart;
+let history = [100];
 
 function renderChart(balance) {
   const canvas = document.getElementById("chart");
-
   if (!canvas) return;
 
   const ctx = canvas.getContext("2d");
+
+  history.push(balance);
 
   if (chart) chart.destroy();
 
   chart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: ["Start", "Now"],
+      labels: history.map((_, i) => i),
       datasets: [{
-        data: [100, balance],
+        data: history,
         borderWidth: 2
       }]
-    }
-  });
-}
+    },
     options: {
       responsive: true,
       plugins: {
@@ -52,15 +49,13 @@ window.load = async function () {
   const assets = Object.keys(data.portfolio || {});
 
   if (assets.length === 0) {
-    portfolioDiv.innerHTML =
-      "<p class='text-gray-500'>No investments yet</p>";
+    portfolioDiv.innerHTML = "<p class='text-gray-500'>No investments yet</p>";
     return;
   }
 
   assets.forEach(asset => {
     const el = document.createElement("div");
-    el.className =
-      "flex justify-between border-b border-gray-800 py-1";
+    el.className = "flex justify-between border-b border-gray-800 py-1";
 
     el.innerHTML = `
       <span>${asset}</span>
@@ -69,14 +64,12 @@ window.load = async function () {
 
     portfolioDiv.appendChild(el);
   });
-}
+};
 
 window.invest = async function (asset) {
   await fetch(`${API_BASE}/api/invest`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       userId,
       asset,
@@ -84,7 +77,7 @@ window.invest = async function (asset) {
     })
   });
 
-  load();
-}
+  window.load();
+};
 
-load();
+window.load();
