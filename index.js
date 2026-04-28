@@ -56,7 +56,7 @@ app.post("/api/invest", async (req, res) => {
   try {
     const { userId, asset, amount } = req.body;
 
-    console.log("Incoming:", userId, asset, amount);
+    console.log("REQUEST:", req.body);
 
     const { data, error } = await supabase
       .from("portfolios")
@@ -65,13 +65,11 @@ app.post("/api/invest", async (req, res) => {
       .single();
 
     if (error) {
-      console.error("FETCH ERROR:", error);
-      return res.status(500).json({ error: error.message });
+      console.error("SUPABASE FETCH ERROR:", error);
+      return res.status(500).json(error);
     }
 
-    if (!data) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    console.log("FOUND USER:", data);
 
     let portfolio = data.data || {};
     let newBalance = data.balance - amount;
@@ -87,19 +85,15 @@ app.post("/api/invest", async (req, res) => {
       .eq("id", userId);
 
     if (updateError) {
-      console.error("UPDATE ERROR:", updateError);
-      return res.status(500).json({ error: updateError.message });
+      console.error("SUPABASE UPDATE ERROR:", updateError);
+      return res.status(500).json(updateError);
     }
 
-    res.json({
-      success: true,
-      balance: newBalance,
-      portfolio
-    });
+    res.json({ success: true, balance: newBalance });
 
   } catch (err) {
-    console.error("SERVER ERROR:", err);
-    res.status(500).json({ error: "Server crashed" });
+    console.error("CRASH:", err);
+    res.status(500).json({ error: err.message });
   }
 });
 
