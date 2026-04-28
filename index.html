@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Pocket Invest</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-black text-white font-sans">
+
+<div class="max-w-md mx-auto p-4">
+
+  <h1 class="text-2xl font-bold mb-4">📊 Pocket Invest</h1>
+
+  <!-- Balance Card -->
+  <div class="bg-gray-900 rounded-xl p-4 mb-3">
+    <p class="text-gray-400">Balance</p>
+    <p id="balance" class="text-3xl font-bold">Loading...</p>
+  </div>
+
+  <!-- Portfolio Card -->
+  <div class="bg-gray-900 rounded-xl p-4 mb-3">
+    <p class="text-gray-400 mb-2">Portfolio</p>
+    <div id="portfolio"></div>
+  </div>
+
+  <!-- Actions -->
+  <div class="bg-gray-900 rounded-xl p-4 space-y-2">
+
+    <button onclick="invest('Apple')" class="w-full bg-green-500 text-black py-2 rounded">
+      Invest £5 Apple
+    </button>
+
+    <button onclick="invest('Microsoft')" class="w-full bg-green-500 text-black py-2 rounded">
+      Invest £5 Microsoft
+    </button>
+
+    <button onclick="invest('Tesla')" class="w-full bg-green-500 text-black py-2 rounded">
+      Invest £5 Tesla
+    </button>
+
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
