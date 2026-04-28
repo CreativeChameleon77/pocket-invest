@@ -38,7 +38,7 @@ function renderChart(balance) {
   });
 }
 
-async function load() {
+window.load = async function () {
   const res = await fetch(`${API_BASE}/api/portfolio/${userId}`);
   const data = await res.json();
 
@@ -71,7 +71,7 @@ async function load() {
   });
 }
 
-async function invest(asset) {
+window.invest = async function (asset) {
   await fetch(`${API_BASE}/api/invest`, {
     method: "POST",
     headers: {
